@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "bibek.lock",
   "name": "Better Lock",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "author": "Bibek Bhusal",
   "description": "Quickshell session lock clone with date/time, power controls, and forgot password prompt.",
   "homepage": "https://github.com/BibekBhusal0/omarchy-better-lock",
@@ -18,7 +18,9 @@
   },
   "defaults": {
     "timeFormat": "hh:mm AP",
-    "dateFormat": "dddd, MMMM d"
+    "dateFormat": "dddd, MMMM d",
+    "autoSuspend": false,
+    "suspendTimer": 300
   },
   "schema": [
     {
@@ -34,6 +36,23 @@
       "label": "Date format",
       "defaultValue": "dddd, MMMM d",
       "description": "Format string for lock screen date text"
+    },
+    {
+      "key": "autoSuspend",
+      "type": "boolean",
+      "label": "Suspend automatically while locked",
+      "defaultValue": false,
+      "description": "Suspend the computer after the configured locked duration."
+    },
+    {
+      "key": "suspendTimer",
+      "type": "integer",
+      "label": "Suspend after (seconds)",
+      "min": 0,
+      "max": 3600,
+      "step": 1,
+      "defaultValue": 300,
+      "description": "Locked duration before automatic suspend when enabled; 0 suspends immediately."
     }
   ]
 }

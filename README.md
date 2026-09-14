@@ -42,6 +42,20 @@ Options live in `~/.config/omarchy/lock.json` (watched live, so edits apply inst
 }
 ```
 
+Set `autoSuspend` and `suspendTimer` on the plugin entry in
+`~/.config/omarchy/shell.json` to suspend the computer after it has been locked
+for a number of seconds. `autoSuspend: false` (the default) keeps the lock
+screen visible without suspending. `suspendTimer: 0` suspends immediately when
+automatic suspend is enabled:
+
+```json
+{
+  "id": "bibek.lock",
+  "autoSuspend": false,
+  "suspendTimer": 300
+}
+```
+
 ## Uninstall
 
 ```bash

@@ -35,6 +35,8 @@ Item {
 
   property string timeFormat: setting("timeFormat", "hh:mm AP")
   property string dateFormat: setting("dateFormat", "dddd, MMMM d")
+  property bool autoSuspend: autoSuspendSetting()
+  property int suspendTimer: suspendTimerSetting()
 
   property bool lockRequested: false
   property bool pendingSessionLock: false
@@ -70,6 +72,23 @@ Item {
     var value = root.fileConfig ? root.fileConfig[key] : undefined;
     return value === undefined || value === null ? fallback : value;
   }
+  function pluginSetting(key, fallback) {
+    var plugins = root.shellConfig && Array.isArray(root.shellConfig.plugins)
+      ? root.shellConfig.plugins : [];
+    for (var i = 0; i < plugins.length; i++) {
+      var entry = plugins[i];
+      if (entry && entry.id === "bibek.lock" && entry[key] !== undefined)
+        return entry[key];
+    }
+    return fallback;
+  }
+  function autoSuspendSetting() {
+    return pluginSetting("autoSuspend", false) === true;
+  }
+  function suspendTimerSetting() {
+    var seconds = Number(pluginSetting("suspendTimer", 300));
+    return isFinite(seconds) ? Math.max(0, Math.round(seconds)) : 300;
+  }
   FileView {
     id: configFile
     path: Quickshell.env("HOME") + "/.config/omarchy/lock.json"
@@ -78,6 +97,16 @@ Item {
     onLoaded: root.fileConfig = root.parseFileConfig(text())
     onFileChanged: configFile.reload()
     onLoadFailed: root.fileConfig = ({})
+  }
+  property var shellConfig: ({})
+  FileView {
+    id: shellConfigFile
+    path: Quickshell.env("HOME") + "/.config/omarchy/shell.json"
+    watchChanges: true
+    printErrors: false
+    onLoaded: root.shellConfig = root.parseFileConfig(text())
+    onFileChanged: shellConfigFile.reload()
+    onLoadFailed: root.shellConfig = ({})
   }
 
   function realScreenCount() {
@@ -220,7 +249,7 @@ Item {
     }
     resetAuthenticationState();
     lockRequested = true;
-    armBlankTimer();
+    armSuspendTimer();
     logEvent("lock-requested");
     queueSessionLock();
     Qt.callLater(function () {
@@ -238,15 +267,29 @@ Item {
     sessionLockStabilizeTimer.stop();
     pendingSessionLockTimer.stop();
     resetAuthenticationState();
-    idleBlankTimer.stop();
+    idleSuspendTimer.stop();
     sessionLock.locked = false;
     logEvent("unlocked");
     runWake();
   }
 
-  function armBlankTimer() {
-    idleBlankTimer.armedAt = Date.now();
-    idleBlankTimer.restart();
+  function armSuspendTimer() {
+    if (!autoSuspend) {
+      idleSuspendTimer.stop();
+      return;
+    }
+    idleSuspendTimer.interval = suspendTimer * 1000;
+    idleSuspendTimer.armedAt = Date.now();
+    idleSuspendTimer.restart();
+  }
+
+  onAutoSuspendChanged: {
+    if (lockRequested)
+      armSuspendTimer();
+  }
+  onSuspendTimerChanged: {
+    if (lockRequested)
+      armSuspendTimer();
   }
 
   function runWake() {
@@ -255,7 +298,7 @@ Item {
       wakeWatchdog.restart();
     }
     if (lockRequested)
-      armBlankTimer();
+      armSuspendTimer();
   }
 
   function runBlank() {
@@ -799,17 +842,17 @@ Item {
   }
 
   Timer {
-    id: idleBlankTimer
-    interval: 5000
+    id: idleSuspendTimer
+    interval: 300000
     repeat: false
     property double armedAt: 0
     onTriggered: {
       if (Date.now() - armedAt > interval + 2000) {
-        root.armBlankTimer();
+        root.armSuspendTimer();
         return;
       }
       if (root.lockRequested && !root.authenticatingPassword)
-        root.runBlank();
+        root.requestSuspend();
     }
   }
 
@@ -859,9 +902,9 @@ Item {
     if (!lockRequested)
       return;
     if (authenticatingPassword)
-      idleBlankTimer.stop();
+      idleSuspendTimer.stop();
     else
-      armBlankTimer();
+      armSuspendTimer();
   }
 
   FileView {
