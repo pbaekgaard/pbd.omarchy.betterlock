@@ -25,10 +25,10 @@ New in this clone:
 
 ## Install
 
-This is a personal clone of the built-in `omarchy.lock`; on this machine it lives in the shell plugin monorepo and is installed under the id `bibek.lock`. To install from the standalone repo on a fresh system:
+This is a personal clone of the built-in `omarchy.lock`, installed under the id `pbd.betterlock`. To install it:
 
 ```bash
-omarchy plugin add https://github.com/BibekBhusal0/omarchy-better-lock.git --enable
+omarchy plugin add https://github.com/pbaekgaard/pbd.omarchy.betterlock --enable
 ```
 
 ## Configuration
@@ -50,7 +50,7 @@ automatic suspend is enabled:
 
 ```json
 {
-  "id": "bibek.lock",
+  "id": "pbd.betterlock",
   "autoSuspend": false,
   "suspendTimer": 300
 }
@@ -59,7 +59,7 @@ automatic suspend is enabled:
 ## Uninstall
 
 ```bash
-omarchy plugin remove bibek.lock
+omarchy plugin remove pbd.betterlock
 ```
 
 ## Credits

@@ -77,7 +77,7 @@ Item {
       ? root.shellConfig.plugins : [];
     for (var i = 0; i < plugins.length; i++) {
       var entry = plugins[i];
-      if (entry && entry.id === "bibek.lock" && entry[key] !== undefined)
+      if (entry && entry.id === "pbd.betterlock" && entry[key] !== undefined)
         return entry[key];
     }
     return fallback;
